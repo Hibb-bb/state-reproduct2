@@ -1,0 +1,9 @@
+*.pyc
+*.log
+__pycache__/
+wandb/
+*/logs/
+*.csv
+
+*/outputs*
+*/repogle*
