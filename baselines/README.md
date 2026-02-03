@@ -2,6 +2,24 @@
 
 This directory contains the implementation of the baselines from the State-Sets paper.
 
+
+## Run Marson
+
+- File structure
+``` baselines/marson/train/train.h5ad ```
+``` baselines/marson/test/test.h5ad ```
+
+- Preprocessing:
+```
+python3 read_marson.py
+```
+
+- Train on marson
+  ```
+  sh scripts/train_marson.sh cpa marson
+  ```
+
+
 ## Overview
 
 This project implements and evaluates several baseline models for perturbation modeling:
