@@ -1,16 +1,33 @@
 #!/bin/bash
 
+# Detect and use Python from virtual environment if available
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASELINES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+VENV_PYTHON="$BASELINES_DIR/.venv/bin/python"
+
+if [ -f "$VENV_PYTHON" ]; then
+    PYTHON_CMD="$VENV_PYTHON"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_CMD="python3"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON_CMD="python"
+else
+    echo "Error: Python not found. Please ensure Python is installed or activate the virtual environment."
+    exit 1
+fi
+
 MODEL_NAME=$1
 DATASET_NAME=$2
 FOLD_ID=$3
 
 # Define output directory
-OUTPUT_DIR_BASE="./outputs"
+OUTPUT_DIR_BASE="/mnt/experiments/cpa"
 
 # Define test tasks for each fold
 if [ "$DATASET_NAME" = "replogle" ]; then
     if [ "$FOLD_ID" = "1" ]; then
-        DATA_TOML_PATH="/projects/b1094/ywl7940/state-reproduce/baselines/.hepg2.toml"
+        # Use relative path from baselines directory
+        DATA_TOML_PATH="$BASELINES_DIR/.hepg2.toml"
     elif [ "$FOLD_ID" = "2" ]; then
         DATA_TOML_PATH="/large_storage/ctc/userspace/aadduri/revisions/replogle_nogwps_v2/jurkat.toml"
     elif [ "$FOLD_ID" = "3" ]; then
@@ -133,7 +150,7 @@ echo "Wandb tags: $WANDB_TAGS"
 echo "Model name: $MODEL_NAME"
 echo "Data toml path: $DATA_TOML_PATH"
 
-BATCH_SIZE=128
+BATCH_SIZE=2048
 if [ "$MODEL_NAME" = "lrlm" ]; then
     GENE_EMB="scgpt"
 
@@ -161,10 +178,10 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
     echo "using perturbation embedding: $PERT_EMB"
 
     echo "Running the following command:"
-    python -m state_sets_reproduce.train \
+    $PYTHON_CMD -m state_sets_reproduce.train \
         data.kwargs.toml_config_path=$DATA_TOML_PATH \
         data.kwargs.embed_key=X_hvg \
-        data.kwargs.basal_mapping_strategy=random \
+        data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
         data.kwargs.num_workers=24 \
         data.kwargs.batch_col=${BATCH_COL} \
@@ -179,7 +196,8 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
         model=cpa \
         training=${TRAINING_NAME} \
         output_dir="${OUTPUT_DIR}" \
-        name="${FOLD_NAME}"
+        name="${FOLD_NAME}" \
+        overwrite=true
 
 
 
@@ -190,10 +208,10 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
 
 else
     echo "Running the following command:"
-    python -m state_sets_reproduce.train \
+    $PYTHON_CMD -m state_sets_reproduce.train \
         data.kwargs.toml_config_path=$DATA_TOML_PATH \
         data.kwargs.embed_key=X_hvg \
-        data.kwargs.basal_mapping_strategy=random \
+        data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
         data.kwargs.num_workers=24 \
         data.kwargs.batch_col=${BATCH_COL} \
@@ -201,9 +219,10 @@ else
         data.kwargs.cell_type_key=${CELL_TYPE_KEY} \
         data.kwargs.control_pert=${CONTROL_PERT} \
         training.max_steps=250000 \
-        training.batch_size=128 \
+        training.batch_size=2048 \
         model=${MODEL_NAME} \
         training=${TRAINING_NAME} \
         output_dir="${OUTPUT_DIR}" \
-        name="${FOLD_NAME}"
+        name="${FOLD_NAME}" \
+        overwrite=true
 fi

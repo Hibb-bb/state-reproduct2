@@ -2,7 +2,7 @@ from huggingface_hub import snapshot_download
 import os
 
 repo_id = "arcinstitute/Replogle-Nadig-Preprint"
-local_dir = "./replogle"
+local_dir = "/mnt/experiments/cpa/replogle"
 os.makedirs(local_dir, exist_ok=True)
 
 # Download ONLY the specified file

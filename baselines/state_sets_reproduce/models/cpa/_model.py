@@ -431,6 +431,22 @@ class CPAPerturbationModel(PerturbationModel):
         opt, opt_adv = self.optimizers()
 
         enc_outputs, dec_outputs = self._forward_step(batch)
+        
+        # Generate UMAP on first batch of each epoch
+        if batch_idx == 0:
+            try:
+                from .umap_utils import plot_umap
+                from pathlib import Path
+                px = dec_outputs["px"]
+                x_pred = px.loc if self.recon_loss == "gauss" else px.mu
+                x_real = batch["pert_cell_emb"]
+                output_dir = Path('/mnt/experiments/cpa')
+                output_dir.mkdir(parents=True, exist_ok=True)
+                out_path = output_dir / f"umap_train_epoch{self.current_epoch}.png"
+                plot_umap(x_real.detach().cpu().numpy(), x_pred.detach().cpu().numpy(), 
+                         str(out_path), title=f"Training UMAP - Epoch {self.current_epoch}")
+            except Exception:
+                pass  # Silently skip if UMAP fails
 
         if self.recon_loss in ["nb", "zinb"]:
             batch["pert_cell_emb"] = torch.expm1(batch["pert_cell_emb"])

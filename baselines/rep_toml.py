@@ -3,7 +3,7 @@ import toml
 config = {
     # Dataset paths - maps dataset names to their directories
     "datasets": {
-        "replogle_proper": "./content/processed_data"
+        "replogle_proper": "/mnt/experiments/cpa/replogle"
     },
     # Training specifications
     # All cell types in a dataset automatically go into training (excluding zeroshot/fewshot overrides)

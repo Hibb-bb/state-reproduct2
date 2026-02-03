@@ -532,12 +532,16 @@ def train(cfg: DictConfig) -> None:
     # Build trainer
     trainer = pl.Trainer(**trainer_kwargs)
 
-    # Load checkpoint if exists
-    checkpoint_path = join(ckpt_callbacks[0].dirpath, "last.ckpt")
-    if not exists(checkpoint_path):
-        checkpoint_path = None
+    # Load checkpoint if exists (skip if overwrite is True)
+    checkpoint_path = None
+    if not cfg.get("overwrite", False):
+        checkpoint_path = join(ckpt_callbacks[0].dirpath, "last.ckpt")
+        if not exists(checkpoint_path):
+            checkpoint_path = None
+        else:
+            logging.info(f"!! Resuming training from {checkpoint_path} !!")
     else:
-        logging.info(f"!! Resuming training from {checkpoint_path} !!")
+        logger.info("Training from scratch (overwrite=True)")
 
     logger.info("Starting trainer fit.")
 

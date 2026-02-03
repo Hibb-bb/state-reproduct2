@@ -130,7 +130,7 @@ def main():
     logger.info(f"Loaded config from {config_path}")
 
     # 2. Find run output directory
-    run_output_dir = os.path.join(cfg["output_dir"], cfg["name"])
+    run_output_dir = args.output_dir
 
     try:
         cell_sentence_len = cfg["model"]["kwargs"]["cell_sentence_len"]
@@ -375,12 +375,11 @@ def main():
                 all_pert_names.append(batch_preds["pert_name"])
 
             # Handle ctrl_cell_barcode
-            if batch_preds["ctrl_cell_barcode"] is not None and isinstance(
-                batch_preds["ctrl_cell_barcode"], list
-            ):
-                all_ctrl_cell_barcodes.extend(batch_preds["ctrl_cell_barcode"])
+            ctrl_cell_barcode = batch_preds.get("ctrl_cell_barcode", None)
+            if ctrl_cell_barcode is not None and isinstance(ctrl_cell_barcode, list):
+                all_ctrl_cell_barcodes.extend(ctrl_cell_barcode)
             else:
-                all_ctrl_cell_barcodes.append(batch_preds["ctrl_cell_barcode"])
+                all_ctrl_cell_barcodes.append(ctrl_cell_barcode)
 
             # Handle celltype_name
             if isinstance(batch_preds["cell_type"], list):
@@ -436,7 +435,7 @@ def main():
         "gem_group": all_gem_groups,
     }
 
-    if len(all_ctrl_cell_barcodes) > 0:
+    if len(all_ctrl_cell_barcodes) > 0 and any(x is not None for x in all_ctrl_cell_barcodes):
         obs_data["ctrl_cell_barcode"] = all_ctrl_cell_barcodes
 
     obs = pd.DataFrame(obs_data)
