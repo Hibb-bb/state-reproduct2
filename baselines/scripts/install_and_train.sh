@@ -35,9 +35,9 @@ echo "Activating virtual environment..."
 echo "Installing requirements..."
 uv pip install -r requirements.txt
 
-# Install torch-scatter (needed but commented out in requirements.txt)
-echo "Installing torch-scatter..."
-uv pip install torch-scatter --no-build-isolation
+# Install torch-scatter from source to ensure compatibility with current PyTorch version
+echo "Installing torch-scatter from source..."
+uv pip install git+https://github.com/rusty1s/pytorch_scatter.git
 
 # Install the package itself in editable mode
 echo "Installing baselines package..."
