@@ -47,19 +47,9 @@ echo "=========================================="
 echo "Installation complete!"
 echo "=========================================="
 
-# Download replogle data if it doesn't exist (only for replogle dataset)
-if [ "$DATASET_NAME" = "replogle" ]; then
-    if [ ! -f "/mnt/experiments/cpa/replogle/replogle.h5ad" ]; then
-        echo "Downloading replogle dataset..."
-        .venv/bin/python download_rep.py
-    fi
-
-    # Generate .hepg2.toml if it doesn't exist (needed for replogle fold 1)
-    if [ ! -f ".hepg2.toml" ]; then
-        echo "Generating .hepg2.toml file..."
-        .venv/bin/python rep_toml.py
-    fi
-fi
+# Generate .hepg2.toml (always regenerate to ensure it's up to date)
+echo "Generating .hepg2.toml file..."
+.venv/bin/python rep_toml.py
 
 echo "=========================================="
 echo "Starting training..."
