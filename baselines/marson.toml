@@ -1,0 +1,15 @@
+# Marson dataset: donor_id, perturbation (guide_target_gene_symbol), timepoint
+# Train from marson/train/; test/val from marson/test/ (test.h5ad) via zeroshot
+[datasets]
+marson = "/projects/b1094/ywl7940/state-reproduce/baselines/marson/train"
+
+# Training specifications (marson = train; marson_test used only for test/val via zeroshot)
+[training]
+marson = "train"
+
+# Zeroshot: all timepoints in marson_test go to test split (used for validation during training)
+# Quoted keys so "dataset.celltype" is one key for cell_load
+[zeroshot]
+
+# Fewshot specifications (optional perturbation lists for val/test)
+[fewshot]

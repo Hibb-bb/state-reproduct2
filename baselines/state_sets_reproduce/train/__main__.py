@@ -5,7 +5,7 @@ import pickle
 import shutil
 import re
 from os.path import join, exists
-from typing import List
+from typing import Dict, List, Optional
 
 import hydra
 import torch
@@ -35,6 +35,90 @@ import logging
 
 logger = logging.getLogger(__name__)
 torch.set_float32_matmul_precision("medium")
+
+
+def _get_train_data_dir_from_toml(toml_config_path: Optional[str]) -> Optional[str]:
+    """Resolve training data directory from TOML config. Returns None if not applicable."""
+    if not toml_config_path or not os.path.isfile(toml_config_path):
+        return None
+    try:
+        import toml
+        toml_cfg = toml.load(toml_config_path)
+    except Exception:
+        return None
+    datasets = toml_cfg.get("datasets") or {}
+    training = toml_cfg.get("training") or {}
+    for name, split in training.items():
+        if split == "train" and name in datasets:
+            data_dir = datasets[name]
+            if isinstance(data_dir, str) and os.path.isdir(data_dir):
+                return data_dir
+    return None
+
+
+def _get_var_dims_from_metadata_and_h5ad(
+    toml_config_path: Optional[str],
+    dm,
+) -> Optional[Dict]:
+    """
+    Build var_dims from metadata.json (n_genes, optionally gene_names) and first h5ad
+    in the training data dir. Used when embed_key is null so we avoid cell_load's
+    get_dim_for_obsm (which looks in obsm/ and fails for raw .X data).
+    """
+    data_dir = _get_train_data_dir_from_toml(toml_config_path)
+    if not data_dir:
+        return None
+    meta_path = os.path.join(data_dir, "metadata.json")
+    if not os.path.isfile(meta_path):
+        return None
+    try:
+        with open(meta_path, "r") as f:
+            meta = json.load(f)
+    except Exception:
+        return None
+    n_genes = meta.get("n_genes")
+    gene_names = meta.get("gene_names")  # optional list
+    # Find first h5ad in data dir (for n_genes / gene_names if missing from metadata)
+    h5ad_path = None
+    for f in sorted(os.listdir(data_dir)):
+        if f.endswith(".h5ad"):
+            h5ad_path = os.path.join(data_dir, f)
+            break
+    if h5ad_path is not None and (n_genes is None or gene_names is None):
+        try:
+            import anndata
+            adata = anndata.read_h5ad(h5ad_path, backed="r")
+            if n_genes is None:
+                n_genes = adata.n_vars
+            if gene_names is None:
+                gene_names = list(adata.var.index)
+            try:
+                adata.close()
+            except AttributeError:
+                pass
+        except Exception as e:
+            logger.warning("Could not read h5ad for var_dims: %s", e)
+            if n_genes is None or gene_names is None:
+                return None
+    if n_genes is None or gene_names is None:
+        return None
+    n_genes = int(n_genes)
+    if isinstance(gene_names, list) and len(gene_names) != n_genes:
+        logger.warning("metadata n_genes=%d but gene_names length=%d; using len(gene_names)", n_genes, len(gene_names))
+        n_genes = len(gene_names)
+    pert_dim = len(dm.pert_onehot_map)
+    batch_dim = len(dm.batch_onehot_map)
+    pert_names = list(dm.pert_onehot_map.keys())
+    return {
+        "input_dim": n_genes,
+        "output_dim": n_genes,
+        "gene_dim": n_genes,
+        "hvg_dim": n_genes,
+        "pert_dim": pert_dim,
+        "batch_dim": batch_dim,
+        "gene_names": gene_names,
+        "pert_names": pert_names,
+    }
 
 
 def get_lightning_module(
@@ -426,25 +510,43 @@ def train(cfg: DictConfig) -> None:
         new_cfg_yaml = OmegaConf.to_yaml(cfg, resolve=True)
         f.write(new_cfg_yaml)
 
-    dm_var_dims = dm.get_var_dims()
+    # When embed_key is null (raw .X), cell_load get_var_dims() uses get_dim_for_obsm(embed_key) and fails.
+    # Build var_dims from metadata.json (+ first h5ad for gene_names / n_genes if missing) instead.
+    dm_var_dims = None
+    if cfg["data"]["kwargs"].get("embed_key") is None:
+        dm_var_dims = _get_var_dims_from_metadata_and_h5ad(
+            cfg["data"]["kwargs"].get("toml_config_path"),
+            dm,
+        )
+        if dm_var_dims is not None:
+            logger.info(
+                "Using var_dims from metadata.json + h5ad (embed_key=null): n_genes=%d",
+                dm_var_dims["input_dim"],
+            )
+    if dm_var_dims is None:
+        # dm.embed_key = None
+        dm_var_dims = dm.get_var_dims()
+
+    print(dm.embed_key)
+    dm.embed_key = "X"
 
     # if cfg["model"]["name"].lower() == "gears":
-    if cfg["data"]["kwargs"]["pert_col"].lower() == "drugname_drugconc":
-        logger.info("Using tahoe gene names for the baselines ")
-        path = "/large_storage/ctc/userspace/mohsen/state_revisions/gears_prep/tahoe_gene_names.txt"
-        with open(path, "r") as f:
-            gene_names = f.readlines()
-        gene_names = [gene.strip() for gene in gene_names]
-        dm_var_dims["gene_names"] = gene_names
-        dm_var_dims["gene_dim"] = len(gene_names)
-    elif cfg["data"]["kwargs"]["pert_col"].lower() == "cytokine":
-        logger.info("Using parse gene names for the baselines ")
-        path = "/large_storage/ctc/userspace/mohsen/state_revisions/gears_prep/parse_hvg_names.txt"
-        with open(path, "r") as f:
-            gene_names = f.readlines()
-        gene_names = [gene.strip() for gene in gene_names]
-        dm_var_dims["gene_names"] = gene_names
-        dm_var_dims["gene_dim"] = len(gene_names)
+    # if cfg["data"]["kwargs"]["pert_col"].lower() == "drugname_drugconc":
+    #     logger.info("Using tahoe gene names for the baselines ")
+    #     path = "/large_storage/ctc/userspace/mohsen/state_revisions/gears_prep/tahoe_gene_names.txt"
+    #     with open(path, "r") as f:
+    #         gene_names = f.readlines()
+    #     gene_names = [gene.strip() for gene in gene_names]
+    #     dm_var_dims["gene_names"] = gene_names
+    #     dm_var_dims["gene_dim"] = len(gene_names)
+    # elif cfg["data"]["kwargs"]["pert_col"].lower() == "cytokine":
+    #     logger.info("Using parse gene names for the baselines ")
+    #     path = "/large_storage/ctc/userspace/mohsen/state_revisions/gears_prep/parse_hvg_names.txt"
+    #     with open(path, "r") as f:
+    #         gene_names = f.readlines()
+    #     gene_names = [gene.strip() for gene in gene_names]
+    #     dm_var_dims["gene_names"] = gene_names
+    #     dm_var_dims["gene_dim"] = len(gene_names)
 
     # Create model
     model = get_lightning_module(

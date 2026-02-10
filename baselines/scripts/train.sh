@@ -21,7 +21,24 @@ DATASET_NAME=$2
 FOLD_ID=$3
 
 # Define output directory
-OUTPUT_DIR_BASE="/mnt/experiments/cpa"
+OUTPUT_DIR_BASE="./experiments/cpa"
+
+
+if [ "$DATASET_NAME" = "marson" ]; then
+
+    DATA_TOML_PATH="/projects/b1094/ywl7940/state-reproduce/baselines/marson.toml"
+    OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/"
+    WANDB_TAGS="[${MODEL_NAME},marson,fold${FOLD_ID}]"
+    TRAINING_NAME=${MODEL_NAME}
+
+    BATCH_COL="donor_id"
+    PERT_COL="guide_target_gene_symbol"
+    CELL_TYPE_KEY="timepoint"
+    CONTROL_PERT="NTC"
+    FOLD_NAME="marson1"
+    EMBED_KEY="X"
+
+fi
 
 # Define test tasks for each fold
 if [ "$DATASET_NAME" = "replogle" ]; then
@@ -180,7 +197,7 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
     echo "Running the following command:"
     $PYTHON_CMD -m state_sets_reproduce.train \
         data.kwargs.toml_config_path=$DATA_TOML_PATH \
-        data.kwargs.embed_key=X_hvg \
+        data.kwargs.embed_key=X \
         data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
         data.kwargs.num_workers=24 \

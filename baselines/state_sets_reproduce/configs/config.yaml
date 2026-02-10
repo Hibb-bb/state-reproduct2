@@ -1,9 +1,9 @@
 # This is a template used in the application to generating the config file for
 # training tasks
 defaults:
-  - data: perturbation
+  - data: marson
   - model: cpa
-  - training: default
+  - training: cpa
   # - wandb: mohsen # Change this as needed
   - _self_
   

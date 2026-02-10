@@ -1,7 +1,7 @@
 name: PerturbationDataModule
 kwargs:
   toml_config_path: null
-  embed_key: X
+  embed_key: X_hvg
   output_space: gene
   pert_rep: onehot
   basal_rep: sample
