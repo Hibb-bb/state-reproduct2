@@ -142,6 +142,19 @@ elif [ "$DATASET_NAME" = "xaira" ]; then
     CELL_TYPE_KEY="cell_type"
     CONTROL_PERT="Non-Targeting"
     FOLD_NAME=${FOLD_ID}
+elif [ "$DATASET_NAME" = "marson" ]; then
+    # Marson dataset configuration
+    # Note: timepoint is used as cell_type_key, donor_id as batch_col
+    DATA_TOML_PATH="$BASELINES_DIR/marson.toml"
+    OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/"
+    WANDB_TAGS="[${MODEL_NAME},marson,fold${FOLD_ID}]"
+    TRAINING_NAME=${MODEL_NAME}
+
+    BATCH_COL="donor_id"
+    PERT_COL="guide_target_gene_symbol"
+    CELL_TYPE_KEY="timepoint"
+    CONTROL_PERT="NTC"
+    FOLD_NAME="marson${FOLD_ID}"
 fi
 
 echo "Training $MODEL_NAME on $DATASET_NAME fold $FOLD_ID"
