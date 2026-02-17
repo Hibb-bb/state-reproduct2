@@ -142,6 +142,17 @@ elif [ "$DATASET_NAME" = "xaira" ]; then
     CELL_TYPE_KEY="cell_type"
     CONTROL_PERT="Non-Targeting"
     FOLD_NAME=${FOLD_ID}
+elif [ "$DATASET_NAME" = "marson" ]; then
+    DATA_TOML_PATH="$BASELINES_DIR/marson.toml"
+    OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/"
+    WANDB_TAGS="[${MODEL_NAME},marson]"
+    TRAINING_NAME=${MODEL_NAME}
+    
+    BATCH_COL="donor_id"
+    PERT_COL="guide_target_gene_symbol"
+    CELL_TYPE_KEY="timepoint"
+    CONTROL_PERT="NTC"
+    FOLD_NAME="marson"
 fi
 
 echo "Training $MODEL_NAME on $DATASET_NAME fold $FOLD_ID"
@@ -168,6 +179,9 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
             PROCESS_PERT_NAMES=""
         elif [ "$DATASET_NAME" = "xaira" ]; then
             PERT_EMB="gears_norman"
+            PROCESS_PERT_NAMES=""
+        elif [ "$DATASET_NAME" = "marson" ]; then
+            PERT_EMB="scgpt"
             PROCESS_PERT_NAMES=""
         fi
     fi
@@ -207,10 +221,17 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
 
 
 else
+    # Set embed_key - use null for marson (use main X matrix, no X_hvg layer), X_hvg for others
+    if [ "$DATASET_NAME" = "marson" ]; then
+        EMBED_KEY_ARG="data.kwargs.embed_key=null"
+    else
+        EMBED_KEY_ARG="data.kwargs.embed_key=X_hvg"
+    fi
+    
     echo "Running the following command:"
     $PYTHON_CMD -m state_sets_reproduce.train \
         data.kwargs.toml_config_path=$DATA_TOML_PATH \
-        data.kwargs.embed_key=X_hvg \
+        ${EMBED_KEY_ARG} \
         data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
         data.kwargs.num_workers=24 \

@@ -1,0 +1,10 @@
+[datasets]
+marson = "/mnt/data/Marson/ML_splits/temp_data/fixed"
+
+[training]
+marson = "train"
+
+[zeroshot]
+
+[fewshot]
+

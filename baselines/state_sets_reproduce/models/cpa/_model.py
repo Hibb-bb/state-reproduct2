@@ -176,6 +176,7 @@ class CPAPerturbationModel(PerturbationModel):
         """
         log-transform the expression if needed
         """
+
         if self.recon_loss in ["gauss", "mse"]:
             X_pert = batch["pert_cell_emb"]
             X_ctrl = batch["ctrl_cell_emb"]
