@@ -10,12 +10,19 @@ from typing import List
 import hydra
 import torch
 import sys
+from pathlib import Path
 
 import lightning.pytorch as pl
 from lightning.pytorch.loggers import CSVLogger, WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from omegaconf import DictConfig, OmegaConf
 from lightning.pytorch.plugins.precision import MixedPrecision
+
+# Add local cell-load repo to path to use local version instead of installed package
+CELL_LOAD_REPO = Path("/mnt/sudarshan/cell-load/src")
+if CELL_LOAD_REPO.exists():
+    sys.path.insert(0, str(CELL_LOAD_REPO))
+    print(f"Using local cell-load repo from: {CELL_LOAD_REPO}")
 
 from cell_load.utils.modules import get_datamodule
 

@@ -15,9 +15,16 @@ import pandas as pd
 import lightning.pytorch as pl
 import torch
 import wandb
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Add local cell-load repo to path to use local version instead of installed package
+CELL_LOAD_REPO = Path("/mnt/sudarshan/cell-load/src")
+if CELL_LOAD_REPO.exists():
+    sys.path.insert(0, str(CELL_LOAD_REPO))
+    print(f"Using local cell-load repo from: {CELL_LOAD_REPO}")
 
 from scipy.sparse import csr_matrix
 from tqdm import tqdm

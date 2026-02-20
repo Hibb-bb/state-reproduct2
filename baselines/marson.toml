@@ -1,5 +1,5 @@
 [datasets]
-marson = "/mnt/data/Marson/ML_splits/temp_data/fixed"
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/train_hvg" 
 
 [training]
 marson = "train"
