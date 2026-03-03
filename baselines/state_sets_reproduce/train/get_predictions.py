@@ -60,6 +60,13 @@ def parse_args():
         default="last.ckpt",
         help="Checkpoint filename. Default is 'last.ckpt'. Relative to the output directory.",
     )
+    parser.add_argument(
+        "--toml_config_path",
+        "-t",
+        type=str,
+        default=None,
+        help="Override the toml config path from training. Use for generation with a different data split.",
+    )
 
     return parser.parse_args()
 
@@ -146,6 +153,11 @@ def main():
 
     if cfg["data"]["kwargs"]["pert_col"] == "drugname_drugconc":
         cfg["data"]["kwargs"]["control_pert"] = "[('DMSO_TF', 0.0, 'uM')]"
+
+    # Override toml config path if provided (e.g. for generation with a different split)
+    if args.toml_config_path:
+        cfg["data"]["kwargs"]["toml_config_path"] = args.toml_config_path
+        logger.info(f"Overriding toml_config_path with: {args.toml_config_path}")
 
     # 3. Load the data module
     data_module = get_datamodule(

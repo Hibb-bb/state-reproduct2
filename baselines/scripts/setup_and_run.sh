@@ -140,14 +140,14 @@ WHEEL_INDEX_URL="https://data.pyg.org/whl/torch-${PYTORCH_BASE_VER}+${PYG_CUDA_S
 echo "Attempting to install prebuilt wheel from: ${WHEEL_INDEX_URL}"
 
 set +e
-pip_cmd install --no-cache-dir -f "${WHEEL_INDEX_URL}" torch-scatter
+pip_cmd install --no-cache-dir --only-binary torch-scatter -f "${WHEEL_INDEX_URL}" torch-scatter
 INSTALL_EXIT=$?
 set -e
 
 if [ $INSTALL_EXIT -eq 0 ]; then
     echo "Successfully installed torch-scatter from wheel index."
 else
-    echo "Wheel install failed (exit $INSTALL_EXIT). Will try to build torch_scatter from source against installed torch."
+    echo "No prebuilt wheel available (exit $INSTALL_EXIT). Building torch_scatter from source against installed torch..."
 
     # help cmake find torch
     CMAKE_PREFIX_PATH="$(python - <<'PY'
@@ -163,7 +163,7 @@ PY
         echo "Set CUDA_HOME=${CUDA_HOME}"
     fi
 
-    pip_cmd install --no-binary :all: --no-build-isolation --verbose torch_scatter
+    pip_cmd install --no-build-isolation --verbose torch_scatter
 fi
 
 # cleanup TMP_REQ
@@ -183,3 +183,4 @@ echo "=========================================="
 
 # Run the training script
 "$BASELINES_DIR/scripts/train.sh" "$MODEL_NAME" "$DATASET_NAME" "$FOLD_ID"
+_NAME" "$FOLD_ID"

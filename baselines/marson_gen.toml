@@ -1,0 +1,13 @@
+[datasets]
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/test_hvg"
+
+[controls]
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_gen_hvg"
+
+[training]
+
+[zeroshot]
+"marson.8hr" = "test"
+"marson.48hr" = "test"
+
+[fewshot]
