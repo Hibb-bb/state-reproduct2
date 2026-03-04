@@ -4,6 +4,9 @@ marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_s
 [training]
 marson = "train"
 
+[controls]
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_train/adata.h5ad"
+
 [zeroshot]
 
 [fewshot]

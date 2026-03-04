@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Run with: bash setup_and_run.sh  (or ./setup_and_run.sh). Do not use plain 'sh' — pipefail is bash-only.
 # Robusted setup_and_run.sh: installs requirements, makes sure pip exists,
 # installs baselines editable (may upgrade torch), then installs torch_scatter
 # matching the *final* torch in the venv (wheel -> fallback build-from-source),
