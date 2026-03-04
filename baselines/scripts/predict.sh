@@ -16,6 +16,15 @@ else
     exit 1
 fi
 
+# Add local cell-load repo to PYTHONPATH to use local version instead of installed package
+CELL_LOAD_REPO="/mnt/sudarshan/cell-load"
+if [ -d "$CELL_LOAD_REPO/src" ]; then
+    export PYTHONPATH="$CELL_LOAD_REPO/src:$PYTHONPATH"
+    echo "Using local cell-load repo from: $CELL_LOAD_REPO/src"
+else
+    echo "Warning: Local cell-load repo not found at $CELL_LOAD_REPO/src, using installed package"
+fi
+
 MODEL_NAME=$1
 DATASET_NAME=$2
 FOLD_ID=$3
@@ -51,6 +60,11 @@ elif [ "$DATASET_NAME" = "xaira" ]; then
     OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_xaira/${FOLD_ID}/"
     if [ -z "$CKPT" ]; then
         CKPT="final.ckpt"
+    fi
+elif [ "$DATASET_NAME" = "marson" ]; then
+    OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/marson/"
+    if [ -z "$CKPT" ]; then
+        CKPT="last.ckpt"
     fi
 fi
 
