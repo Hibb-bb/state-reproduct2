@@ -35,7 +35,7 @@ else
 fi
 
 # Define output directory (matching train.sh)
-OUTPUT_DIR_BASE="outputs"
+OUTPUT_DIR_BASE="/mnt/experiments/cpa"
 
 # Define test tasks for each fold (matching train.sh structure)
 if [ "$DATASET_NAME" = "replogle" ]; then
@@ -63,6 +63,8 @@ elif [ "$DATASET_NAME" = "xaira" ]; then
     fi
 elif [ "$DATASET_NAME" = "marson" ]; then
     OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/marson/"
+    GENERATION_DIR="${OUTPUT_DIR}generation"
+    DATA_TOML="${BASELINES_DIR}/marson_generation.toml"
     if [ -z "$CKPT" ]; then
         CKPT="last.ckpt"
     fi
@@ -71,6 +73,7 @@ fi
 echo "Generating Predictions for $MODEL_NAME on $DATASET_NAME (fold: $FOLD_ID)"
 echo "Output directory: $OUTPUT_DIR"
 
-$PYTHON_CMD -m state_sets_reproduce.train.get_predictions \
-    --output_dir ${OUTPUT_DIR} \
-    --checkpoint ${CKPT} 
+PREDICT_ARGS="--output_dir ${OUTPUT_DIR} --checkpoint ${CKPT}"
+[ -n "${GENERATION_DIR:-}" ] && PREDICT_ARGS="${PREDICT_ARGS} --generation_dir ${GENERATION_DIR}"
+[ -n "${DATA_TOML:-}" ] && PREDICT_ARGS="${PREDICT_ARGS} --data_toml ${DATA_TOML}"
+$PYTHON_CMD -m state_sets_reproduce.train.get_predictions $PREDICT_ARGS 

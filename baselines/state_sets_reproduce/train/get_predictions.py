@@ -60,6 +60,19 @@ def parse_args():
         default="last.ckpt",
         help="Checkpoint filename. Default is 'last.ckpt'. Relative to the output directory.",
     )
+    parser.add_argument(
+        "--generation_dir",
+        "-g",
+        type=str,
+        default=None,
+        help="Directory where generated/predicted adata files are written. Default: same as output_dir.",
+    )
+    parser.add_argument(
+        "--data_toml",
+        type=str,
+        default=None,
+        help="Override data TOML path (e.g. for test/generation). Default: use path from saved config.",
+    )
 
     return parser.parse_args()
 
@@ -146,6 +159,10 @@ def main():
 
     if cfg["data"]["kwargs"]["pert_col"] == "drugname_drugconc":
         cfg["data"]["kwargs"]["control_pert"] = "[('DMSO_TF', 0.0, 'uM')]"
+
+    if args.data_toml is not None:
+        cfg["data"]["kwargs"]["toml_config_path"] = args.data_toml
+        logger.info("Using data TOML override: %s", args.data_toml)
 
     # 3. Load the data module
     data_module = get_datamodule(
@@ -296,13 +313,18 @@ def main():
             "transformer_backbone_kwargs"
         ]["n_positions"]
 
-    test_loader = data_module.test_dataloader()
+    # When using a data TOML override (e.g. generation toml), run on that data via train_dataloader.
+    # Otherwise require a test set and use test_dataloader.
+    if args.data_toml is not None:
+        test_loader = data_module.train_dataloader(test=False)
+        logger.info("Using generation/data TOML override: running predictions on data from %s", args.data_toml)
+    else:
+        test_loader = data_module.test_dataloader()
+        if test_loader is None or (isinstance(test_loader, list) and len(test_loader) == 0):
+            logger.error("No test dataloader found. Exiting. Use --data_toml for generation, or configure zeroshot/fewshot in the data TOML.")
+            sys.exit(1)
 
     print(f"DEBUG: data_module.batch_size: {data_module.batch_size}")
-
-    if test_loader is None:
-        logger.warning("No test dataloader found. Exiting.")
-        sys.exit(0)
 
     # num_cells = test_loader.batch_sampler.tot_num
     # output_dim = var_dims["output_dim"]
@@ -477,22 +499,26 @@ def main():
             final_gene_preds = np.log1p(final_gene_preds)
         adata_pred_gene = anndata.AnnData(X=final_gene_preds, obs=obs)
 
-    # save out adata_real to the output directory
-    adata_real_out = os.path.join(args.output_dir, "adata_real.h5ad")
+    # Directory for generated outputs (default: output_dir)
+    generation_dir = args.generation_dir if args.generation_dir is not None else args.output_dir
+    os.makedirs(generation_dir, exist_ok=True)
+
+    # save out adata_real to the generation directory
+    adata_real_out = os.path.join(generation_dir, "adata_real.h5ad")
     adata_real.write_h5ad(adata_real_out)
     logger.info(f"Saved adata_real to {adata_real_out}")
 
-    adata_pred_out = os.path.join(args.output_dir, "adata_pred.h5ad")
+    adata_pred_out = os.path.join(generation_dir, "adata_pred.h5ad")
     adata_pred.write_h5ad(adata_pred_out)
     logger.info(f"Saved adata_pred to {adata_pred_out}")
 
     if adata_real_gene is not None:
-        adata_real_gene_out = os.path.join(args.output_dir, "adata_real_gene.h5ad")
+        adata_real_gene_out = os.path.join(generation_dir, "adata_real_gene.h5ad")
         adata_real_gene.write_h5ad(adata_real_gene_out)
         logger.info(f"Saved adata_real_gene to {adata_real_gene_out}")
 
     if adata_pred_gene is not None:
-        adata_pred_gene_out = os.path.join(args.output_dir, "adata_pred_gene.h5ad")
+        adata_pred_gene_out = os.path.join(generation_dir, "adata_pred_gene.h5ad")
         adata_pred_gene.write_h5ad(adata_pred_gene_out)
         logger.info(f"Saved adata_pred_gene to {adata_pred_gene_out}")
 
