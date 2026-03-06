@@ -178,7 +178,10 @@ def main():
 
     # 4. Load the trained model
     checkpoint_dir = os.path.join(run_output_dir, "checkpoints")
-    checkpoint_path = os.path.join(checkpoint_dir, args.checkpoint)
+    if os.path.isabs(args.checkpoint) and os.path.isfile(args.checkpoint):
+        checkpoint_path = args.checkpoint
+    else:
+        checkpoint_path = os.path.join(checkpoint_dir, args.checkpoint)
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(
             f"Could not find checkpoint at {checkpoint_path}.\nSpecify a correct checkpoint filename with --checkpoint."

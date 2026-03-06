@@ -28,8 +28,11 @@ fi
 MODEL_NAME=$1
 DATASET_NAME=$2
 FOLD_ID=$3
-if [ $# -eq 4 ]; then
+# Checkpoint: 4th argument, or CHECKPOINT env var, or leave empty for dataset default
+if [ $# -ge 4 ]; then
     CKPT=$4
+elif [ -n "${CHECKPOINT:-}" ]; then
+    CKPT="$CHECKPOINT"
 else
     CKPT=""
 fi
@@ -66,7 +69,7 @@ elif [ "$DATASET_NAME" = "marson" ]; then
     GENERATION_DIR="${OUTPUT_DIR}generation"
     DATA_TOML="${BASELINES_DIR}/marson_generation.toml"
     if [ -z "$CKPT" ]; then
-        CKPT="last.ckpt"
+        CKPT="step=196000.ckpt"
     fi
 fi
 

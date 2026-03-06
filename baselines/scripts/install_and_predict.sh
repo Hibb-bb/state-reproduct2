@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to install environment and run prediction
-# Usage: ./scripts/install_and_predict.sh [MODEL_NAME] [DATASET_NAME] [FOLD_ID]
+# Usage: ./scripts/install_and_predict.sh [MODEL_NAME] [DATASET_NAME] [FOLD_ID] [CHECKPOINT]
+#   CHECKPOINT: optional, e.g. last.ckpt or /path/to/checkpoint.ckpt
 
 set -e
 
@@ -11,6 +12,10 @@ cd "$BASELINES_DIR"
 MODEL_NAME=${1:-cpa}
 DATASET_NAME=${2:-marson}
 FOLD_ID=${3:-marson}
+# Optional 4th arg: checkpoint filename (e.g. last.ckpt) or absolute path
+if [ $# -ge 4 ]; then
+    export CHECKPOINT="$4"
+fi
 
 echo "=========================================="
 echo "Installing environment and running prediction"
@@ -49,7 +54,7 @@ echo "=========================================="
 echo "Running prediction..."
 echo "=========================================="
 
-bash scripts/predict.sh "$MODEL_NAME" "$DATASET_NAME" "$FOLD_ID"
+bash scripts/predict.sh "$MODEL_NAME" "$DATASET_NAME" "$FOLD_ID" ${CHECKPOINT:+$CHECKPOINT}
 
 echo "=========================================="
 echo "Prediction complete!"
