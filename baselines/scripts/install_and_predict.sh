@@ -1,0 +1,56 @@
+#!/bin/bash
+# Script to install environment and run prediction
+# Usage: ./scripts/install_and_predict.sh [MODEL_NAME] [DATASET_NAME] [FOLD_ID]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASELINES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$BASELINES_DIR"
+
+MODEL_NAME=${1:-cpa}
+DATASET_NAME=${2:-marson}
+FOLD_ID=${3:-marson}
+
+echo "=========================================="
+echo "Installing environment and running prediction"
+echo "Model: $MODEL_NAME"
+echo "Dataset: $DATASET_NAME"
+echo "Fold: $FOLD_ID"
+echo "=========================================="
+
+# Create virtual environment if it doesn't exist
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment..."
+    uv venv .venv --python 3.12
+fi
+
+# Activate virtual environment
+echo "Activating virtual environment..."
+. .venv/bin/activate
+
+# Install requirements using uv
+echo "Installing requirements..."
+uv pip install -r requirements.txt
+
+# Install torch-scatter from source to ensure compatibility with current PyTorch version
+echo "Installing torch-scatter from source..."
+uv pip install git+https://github.com/rusty1s/pytorch_scatter.git
+
+# Install the package itself in editable mode
+echo "Installing baselines package..."
+uv pip install -e .
+
+echo "=========================================="
+echo "Installation complete!"
+echo "=========================================="
+
+echo "=========================================="
+echo "Running prediction..."
+echo "=========================================="
+
+bash scripts/predict.sh "$MODEL_NAME" "$DATASET_NAME" "$FOLD_ID"
+
+echo "=========================================="
+echo "Prediction complete!"
+echo "=========================================="
