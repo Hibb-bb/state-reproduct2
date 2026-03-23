@@ -7,7 +7,7 @@ import scanpy as sc
 import numpy as np
 from pathlib import Path
 
-def fix_categories(h5ad_path: Path, output_path: Path, pert_col: str = "guide_target_gene_symbol"):
+def fix_categories(h5ad_path: Path, output_path: Path, pert_col: str = "guide_target_ensembl"):
     """Fix the categories array to only include perturbations that appear in cells."""
     print(f"Processing {h5ad_path}...")
     

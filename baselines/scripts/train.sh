@@ -158,7 +158,7 @@ elif [ "$DATASET_NAME" = "marson" ]; then
     TRAINING_NAME=${MODEL_NAME}
     
     BATCH_COL="donor_id"
-    PERT_COL="guide_target_gene_symbol"
+    PERT_COL="guide_target_ensembl"
     CELL_TYPE_KEY="timepoint"
     CONTROL_PERT="NTC"
     FOLD_NAME="marson"

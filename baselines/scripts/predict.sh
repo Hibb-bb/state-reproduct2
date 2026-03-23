@@ -71,6 +71,13 @@ elif [ "$DATASET_NAME" = "marson" ]; then
     if [ -z "$CKPT" ]; then
         CKPT="step=196000.ckpt"
     fi
+elif [ "$DATASET_NAME" = "marson_controls" ]; then
+    OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_NAME}_marson/marson/"
+    GENERATION_DIR="${OUTPUT_DIR}generation_controls"
+    DATA_TOML="${BASELINES_DIR}/marson_generation_controls.toml"
+    if [ -z "$CKPT" ]; then
+        CKPT="step=196000.ckpt"
+    fi
 fi
 
 echo "Generating Predictions for $MODEL_NAME on $DATASET_NAME (fold: $FOLD_ID)"
