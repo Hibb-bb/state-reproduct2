@@ -36,7 +36,10 @@ echo "Activating virtual environment..."
 
 # Install requirements using uv (PyTorch cu118 index for older GPU drivers)
 echo "Installing requirements..."
-uv pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
+# PyTorch index lists some transitive packages without every pin; allow PyPI to satisfy them.
+uv pip install -r requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cu128 \
+    --index-strategy unsafe-best-match
 
 # Install torch-scatter from source to ensure compatibility with current PyTorch version
 echo "Installing torch-scatter from source..."

@@ -27,9 +27,11 @@ fi
 # Activate virtual environment (use . instead of source for sh compatibility)
 . .venv/bin/activate
 
-# Install requirements using uv
+# Install requirements using uv (same index strategy as install_and_train / install_and_predict).
 echo "Installing requirements..."
-uv pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
+uv pip install -r requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cu128 \
+    --index-strategy unsafe-best-match
 
 # Install torch-scatter from source to ensure compatibility with current PyTorch version
 echo "Installing torch-scatter from source..."
