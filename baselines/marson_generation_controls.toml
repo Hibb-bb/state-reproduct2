@@ -1,0 +1,15 @@
+# TOML for generation/prediction on Marson control cells (ctrl_for_gen shards).
+# Used by: bash scripts/predict.sh cpa marson_controls <anything> [checkpoint]
+
+[datasets]
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_gen_hvg"
+
+[training]
+marson = "train"
+
+[controls]
+marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_train/adata.h5ad"
+
+[zeroshot]
+
+[fewshot]
