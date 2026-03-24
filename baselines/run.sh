@@ -29,7 +29,7 @@ fi
 
 # Install requirements using uv
 echo "Installing requirements..."
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
 
 # Install torch-scatter from source to ensure compatibility with current PyTorch version
 echo "Installing torch-scatter from source..."

@@ -25,6 +25,18 @@ else
     echo "Warning: Local cell-load repo not found at $CELL_LOAD_REPO/src, using installed package"
 fi
 
+# Fail fast: PyTorch vs NVIDIA driver (before Hydra / data preprocessing).
+if [ -z "${SKIP_CUDA_CHECK:-}" ]; then
+    echo "Checking PyTorch / CUDA driver compatibility..."
+    if ! "$PYTHON_CMD" "$BASELINES_DIR/scripts/check_cuda_torch.py"; then
+        echo "CUDA check failed. Fix the driver or install a matching torch wheel (see baselines/requirements.txt)."
+        echo "To skip this check: SKIP_CUDA_CHECK=1 bash scripts/train.sh ..."
+        exit 1
+    fi
+else
+    echo "Skipping CUDA check (SKIP_CUDA_CHECK is set)."
+fi
+
 MODEL_NAME=$1
 DATASET_NAME=$2
 FOLD_ID=$3
