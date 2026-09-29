@@ -1,14 +1,19 @@
-# TOML for generation/prediction on Marson control cells (ctrl_for_gen shards).
+# TOML for generation/prediction on Marson control cells.
 # Used by: bash scripts/predict.sh cpa marson_controls <anything> [checkpoint]
+#
+# The original ctrl_for_gen_hvg directory did not survive the sync to Reef. This runs on
+# the shared NTC pool built by scripts/build_cpa_control_pool.py --all-ntc: every NTC
+# cell in train_hvg (944156, all 12 donor x timepoint groups). The delta metric only
+# uses the groups present in test_hvg. Basal cells come from the same pool.
 
 [datasets]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_gen_hvg"
+marson = "/mnt/main0/home/sudarshan.babu/cell_bench_runs/cpa_state/ctrl_pool_all_ntc"
 
 [training]
 marson = "train"
 
 [controls]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_train/adata.h5ad"
+marson = "/mnt/main0/home/sudarshan.babu/cell_bench_runs/cpa_state/ctrl_pool_all_ntc/ctrl_pool.h5ad"
 
 [zeroshot]
 

@@ -1,13 +1,15 @@
-# TOML for generation/prediction on Marson test set
+# Marson generation/prediction on the held-out test shards, repointed at the Reef mirror.
+# test_hvg carries no NTC cells; basal cells come from the shared NTC pool in [controls]
+# (every NTC cell in train_hvg), the same file training drew from.
 
 [datasets]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/test_hvg"
+marson = "/mnt/main0/data-sync/runai-cluster/runai-cell-studio/cell-studio-pvc/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/test_hvg"
 
 [training]
 marson = "train"
 
 [controls]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_train/adata.h5ad"
+marson = "/mnt/main0/home/sudarshan.babu/cell_bench_runs/cpa_state/ctrl_pool_all_ntc/ctrl_pool.h5ad"
 
 [zeroshot]
 

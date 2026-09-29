@@ -1,13 +1,19 @@
+# Marson training config, repointed at the Reef read-only mirror of cell-studio-pvc.
+# Basal (control) cells come from one shared NTC pool: cell-load opens the [controls]
+# file, keeps only its control_pert=NTC cells, and pairs each perturbed cell with a pool
+# cell of the same (donor, timepoint) via basal_mapping_strategy=batch. The pool
+# (scripts/build_cpa_control_pool.py --all-ntc) is every NTC cell in train_hvg, 944156
+# cells, and is the same file generation uses.
+
 [datasets]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/train_hvg" 
+marson = "/mnt/main0/data-sync/runai-cluster/runai-cell-studio/cell-studio-pvc/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/train_hvg"
 
 [training]
 marson = "train"
 
 [controls]
-marson = "/mnt/data/Marson/ML_splits/donor_timepoint_single_guide_fewshot_allG_sharded/ctrl_for_train/adata.h5ad"
+marson = "/mnt/main0/home/sudarshan.babu/cell_bench_runs/cpa_state/ctrl_pool_all_ntc/ctrl_pool.h5ad"
 
 [zeroshot]
 
 [fewshot]
-

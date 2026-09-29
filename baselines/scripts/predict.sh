@@ -17,7 +17,7 @@ else
 fi
 
 # Add local cell-load repo to PYTHONPATH to use local version instead of installed package
-CELL_LOAD_REPO="/mnt/sudarshan/cell-load"
+CELL_LOAD_REPO="${CELL_LOAD_REPO:-/mnt/sudarshan/cell-load}"
 if [ -d "$CELL_LOAD_REPO/src" ]; then
     export PYTHONPATH="$CELL_LOAD_REPO/src:$PYTHONPATH"
     echo "Using local cell-load repo from: $CELL_LOAD_REPO/src"
@@ -38,7 +38,7 @@ else
 fi
 
 # Define output directory (matching train.sh)
-OUTPUT_DIR_BASE="/mnt/experiments/cpa"
+OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-/mnt/experiments/cpa}"
 
 # Define test tasks for each fold (matching train.sh structure)
 if [ "$DATASET_NAME" = "replogle" ]; then

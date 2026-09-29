@@ -17,7 +17,7 @@ else
 fi
 
 # Add local cell-load repo to PYTHONPATH to use local version instead of installed package
-CELL_LOAD_REPO="/mnt/sudarshan/cell-load"
+CELL_LOAD_REPO="${CELL_LOAD_REPO:-/mnt/sudarshan/cell-load}"
 if [ -d "$CELL_LOAD_REPO/src" ]; then
     export PYTHONPATH="$CELL_LOAD_REPO/src:$PYTHONPATH"
     echo "Using local cell-load repo from: $CELL_LOAD_REPO/src"
@@ -42,7 +42,7 @@ DATASET_NAME=$2
 FOLD_ID=$3
 
 # Define output directory
-OUTPUT_DIR_BASE="/mnt/experiments/cpa"
+OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-/mnt/experiments/cpa}"
 
 # Define test tasks for each fold
 if [ "$DATASET_NAME" = "replogle" ]; then
@@ -218,7 +218,7 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
         data.kwargs.embed_key=X_hvg \
         data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
-        data.kwargs.num_workers=24 \
+        data.kwargs.num_workers=${NUM_WORKERS:-24} \
         data.kwargs.batch_col=${BATCH_COL} \
         data.kwargs.pert_col=${PERT_COL} \
         data.kwargs.cell_type_key=${CELL_TYPE_KEY} \
@@ -232,7 +232,7 @@ if [ "$MODEL_NAME" = "lrlm" ]; then
         training=${TRAINING_NAME} \
         output_dir="${OUTPUT_DIR}" \
         name="${FOLD_NAME}" \
-        overwrite=true
+        overwrite=${OVERWRITE:-true}
 
 
 
@@ -255,7 +255,7 @@ else
         ${EMBED_KEY_ARG} \
         data.kwargs.basal_mapping_strategy=batch \
         data.kwargs.output_space=gene \
-        data.kwargs.num_workers=24 \
+        data.kwargs.num_workers=${NUM_WORKERS:-24} \
         data.kwargs.batch_col=${BATCH_COL} \
         data.kwargs.pert_col=${PERT_COL} \
         data.kwargs.cell_type_key=${CELL_TYPE_KEY} \
@@ -267,5 +267,5 @@ else
         training=${TRAINING_NAME} \
         output_dir="${OUTPUT_DIR}" \
         name="${FOLD_NAME}" \
-        overwrite=true
+        overwrite=${OVERWRITE:-true}
 fi

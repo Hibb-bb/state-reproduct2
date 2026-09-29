@@ -4,6 +4,7 @@ from pathlib import Path
 import pickle
 import shutil
 import re
+from glob import glob
 from os.path import join, exists
 from typing import List
 
@@ -252,7 +253,9 @@ def get_checkpoint_callbacks(
     best_ckpt = ModelCheckpoint(
         dirpath=checkpoint_dir,
         filename="step={step}-val_loss={val_loss:.4f}",
-        save_last="link",  # Will create last.ckpt symlink to best checkpoint
+        # A real file, not "link": with no val split val_loss never fires, so the link
+        # target would be last.ckpt itself and the self-symlink breaks every later save.
+        save_last=True,
         monitor="val_loss",
         mode="min",
         save_top_k=1,  # Only keep the best checkpoint
@@ -271,6 +274,31 @@ def get_checkpoint_callbacks(
     callbacks.append(periodic_ckpt)
 
     return callbacks
+
+
+def find_resume_checkpoint(checkpoint_dir: str) -> str | None:
+    """Newest resumable checkpoint in `checkpoint_dir`, or None to train from scratch.
+
+    Falls back to the periodic checkpoints when last.ckpt is unusable, so a requeued
+    job cannot silently restart from step 0. A last.ckpt written by an earlier
+    save_last="link" run can be a symlink to itself, which reads as non-existent and
+    raises ELOOP when written to, so it is removed rather than skipped.
+    """
+    last = join(checkpoint_dir, "last.ckpt")
+    if os.path.lexists(last) and not exists(last):
+        logger.warning(f"Removing unreadable checkpoint symlink {last}")
+        os.unlink(last)
+    if exists(last):
+        return last
+
+    steps = {}
+    for path in glob(join(checkpoint_dir, "*.ckpt")):
+        match = re.search(r"step=(\d+)", os.path.basename(path))
+        if match:
+            steps[int(match.group(1))] = path
+    if not steps:
+        return None
+    return steps[max(steps)]
 
 
 @hydra.main(version_base=None, config_path="../configs", config_name="config")
@@ -542,11 +570,11 @@ def train(cfg: DictConfig) -> None:
     # Load checkpoint if exists (skip if overwrite is True)
     checkpoint_path = None
     if not cfg.get("overwrite", False):
-        checkpoint_path = join(ckpt_callbacks[0].dirpath, "last.ckpt")
-        if not exists(checkpoint_path):
-            checkpoint_path = None
+        checkpoint_path = find_resume_checkpoint(ckpt_callbacks[0].dirpath)
+        if checkpoint_path is None:
+            logger.info("No checkpoint found, training from scratch")
         else:
-            logging.info(f"!! Resuming training from {checkpoint_path} !!")
+            logger.info(f"!! Resuming training from {checkpoint_path} !!")
     else:
         logger.info("Training from scratch (overwrite=True)")
 
