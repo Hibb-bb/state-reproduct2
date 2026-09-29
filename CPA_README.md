@@ -1,0 +1,2 @@
+sbatch slurm_submits/train_cpa_marson.sh
+sbatch slurm_submits/generate_cpa_marson.sh
